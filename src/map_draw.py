@@ -128,9 +128,10 @@ def draw_connections(screen: Any, map_obj: Map, values: RenderData) -> None:
         pygame.draw.circle(screen, (180, 180, 180), end, 2)
 
 
-
-
-def draw_zones(screen: Any, map_obj: Map, values: RenderData, time: int) -> None:
+def draw_zones(screen: Any,
+               map_obj: Map,
+               values: RenderData,
+               time: int) -> None:
     import pygame
 
     for name, data in map_obj.zones.items():
@@ -262,7 +263,8 @@ def soften(color: tuple[int, int, int]) -> tuple[int, int, int]:
     )
 
 
-def darken(color: tuple[int, int, int], factor: float = 0.7) -> tuple[int, int, int]:
+def darken(color: tuple[int, int, int],
+           factor: float = 0.7) -> tuple[int, int, int]:
     r, g, b = color
     return (
         int(r * factor),

@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+.mypy_cache/
+.pytest_cache/
+
+# Virtualenv
+.venv/
+venv/
+
+# VSCode
+.vscode/
+
+# uv
+uv.lock
+
+# OS
+.DS_Store
+Thumbs.db
+
+# build
+dist/
+build/
+*.egg-info/
