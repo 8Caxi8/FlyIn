@@ -14,7 +14,7 @@ def display_map(map_obj: Map) -> None:
     import pygame
 
     pygame.init()
-    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    screen = pygame.display.set_mode((900, 600))
     pygame.display.set_caption("Drone Map")
     width, height = screen.get_size()
 

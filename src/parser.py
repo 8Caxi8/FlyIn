@@ -1,5 +1,6 @@
 import sys
 from .map_model import Map, MapError, Zone, Connection
+from .bfs import check_solvability
 
 
 class FileError(Exception):
@@ -28,18 +29,14 @@ class ConnectionError(FileError):
 
 def parser_map() -> Map:
     args = sys.argv[1:]
-    i = 0
-
     map_path = "default.txt"
 
-    while i < len(args):
-        if args[i] == "--input":
-            if i + 1 >= len(args):
-                raise ValueError("Missing value for '--input'")
-            map_path = args[i + 1]
-            break
-
-        i += 1
+    if "--input" in args:
+        idx = args.index("--input")
+        try:
+            map_path = args[idx + 1]
+        except IndexError:
+            raise ValueError("Missing value for '--input'")
 
     return load_map(map_path)
 
@@ -77,7 +74,8 @@ def load_map(map_path: str) -> Map:
                     if maindata[0].startswith(("hub:",
                                                "start_hub:",
                                                "end_hub:")):
-                        metadata = parse_metadata("zone", meta_part.strip("]"))
+                        metadata = parse_metadata(
+                            "zone", meta_part.rstrip("]"))
 
                         if len(maindata) != 4:
                             raise HubError()
@@ -127,6 +125,9 @@ def load_map(map_path: str) -> Map:
     except (OSError, FileError, MapError) as e:
         raise ValueError(f"[ParsingError]: {e}")
 
+    if not check_solvability(map_obj):
+        raise ValueError("[ParsingError]: Map is not solvable!")
+
     return map_obj
 
 
@@ -152,6 +153,9 @@ def parse_metadata(meta_type: str, meta: str) -> dict[str, str | int]:
                 raise HubError()
             else:
                 raise ConnectionError()
+
+        if key == "zone":
+            key = "zone_type"
 
         result[key] = value
 
