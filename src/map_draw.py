@@ -1,5 +1,6 @@
 from .map_model import Map
-from typing import NamedTuple, Any
+from typing import NamedTuple
+import pygame
 
 
 class RenderData(NamedTuple):
@@ -10,8 +11,13 @@ class RenderData(NamedTuple):
     min_y: int
 
 
-def display_map(map_obj: Map) -> None:
-    import pygame
+def display_map(map_obj: Map,
+                drones_table: dict[int, dict[str, str]]) -> None:
+    is_playing = False
+    current_turn = 1
+    max_turn = max(drones_table)
+    last_update = 0
+    TURN_DELAY = 1000
 
     pygame.init()
     screen = pygame.display.set_mode((900, 600))
@@ -21,6 +27,7 @@ def display_map(map_obj: Map) -> None:
     values = compute_layout(map_obj, width, height)
 
     clock = pygame.time.Clock()
+    font = pygame.font.Font(None, 48)
 
     running = True
 
@@ -30,18 +37,69 @@ def display_map(map_obj: Map) -> None:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
 
-        time = pygame.time.get_ticks()
+                elif event.key == pygame.K_SPACE:
+                    if current_turn == max_turn:
+                        current_turn = 1
+                    is_playing = not is_playing
+
+                elif event.key == pygame.K_RIGHT:
+                    current_turn = min(current_turn + 1, max_turn)
+
+                elif event.key == pygame.K_LEFT:
+                    current_turn = max(current_turn - 1, 1)
+
+                elif event.key == pygame.K_s:
+                    current_turn = 1
+                    is_playing = False
+
+        now = pygame.time.get_ticks()
+
         draw_connections(screen, map_obj, values)
-        draw_zones(screen, map_obj, values, time)
+        draw_zones(screen, map_obj, values, now)
+
+        if is_playing and now - last_update > TURN_DELAY:
+            current_turn += 1
+            last_update = now
+
+            if current_turn > max_turn:
+                current_turn = max_turn
+                is_playing = False
+
+        # draw_drones(screen, map_obj, values, drones_table, current_turn)
+
+        status = "▶" if is_playing else "⏸"
+        draw_turn(screen, font, current_turn, status)
 
         pygame.display.flip()
         clock.tick(60)
 
     pygame.quit()
+
+
+def draw_turn(screen: pygame.Surface,
+              font: pygame.font.Font,
+              turn: int, status: str) -> None:
+
+    text = font.render(f"{status} Turn {turn}", True, (220, 220, 220))
+    rect = text.get_rect()
+    rect.centerx = screen.get_width() // 2
+    rect.top = 10
+
+    bg = pygame.Surface((rect.width + 20, rect.height + 10), pygame.SRCALPHA)
+    bg.fill((0, 0, 0, 120))
+    bg_rect = bg.get_rect(center=rect.center)
+
+    shadow = font.render(f"{status} Turn {turn}", True, (0, 0, 0))
+    shadow_rect = shadow.get_rect(center=(rect.centerx + 2, rect.centery + 2))
+
+    screen.blit(bg, bg_rect)
+    screen.blit(shadow, shadow_rect)
+    screen.blit(text, rect)
 
 
 def compute_layout(map_obj: Map, WIDTH: int, HEIGHT: int) -> RenderData:
@@ -89,8 +147,8 @@ def compute_layout(map_obj: Map, WIDTH: int, HEIGHT: int) -> RenderData:
     )
 
 
-def draw_connections(screen: Any, map_obj: Map, values: RenderData) -> None:
-    import pygame
+def draw_connections(screen: pygame.Surface,
+                     map_obj: Map, values: RenderData) -> None:
 
     for connection in list(map_obj.connections):
         a, b = connection
@@ -128,11 +186,10 @@ def draw_connections(screen: Any, map_obj: Map, values: RenderData) -> None:
         pygame.draw.circle(screen, (180, 180, 180), end, 2)
 
 
-def draw_zones(screen: Any,
+def draw_zones(screen: pygame.Surface,
                map_obj: Map,
                values: RenderData,
                time: int) -> None:
-    import pygame
 
     for name, data in map_obj.zones.items():
         x, y = data["position"]
@@ -194,11 +251,10 @@ def draw_zones(screen: Any,
 
 
 def draw_glow(values: RenderData,
-              screen: Any,
-              rect: Any,
+              screen: pygame.Surface,
+              rect: pygame.Rect,
               color: tuple[int, int, int],
               pulse: float) -> None:
-    import pygame
     MAX_RADIUS = 50
 
     radius = int(values.node_size / 2 + pulse * MAX_RADIUS)
@@ -243,7 +299,6 @@ def compute_scale(map_obj: Map, screen_width: int,
 
 
 def get_color(color: str | None) -> tuple[int, int, int]:
-    import pygame
     if color:
         try:
             c = pygame.Color(color)

@@ -49,10 +49,6 @@ class Connection(BaseModel):
     zone2: str
     max_link_capacity: int = Field(default=1, ge=1)
 
-    def __iter__(self):
-        yield self.zone1
-        yield self.zone2
-
     def __repr__(self) -> str:
         return f"{self.zone1}-{self.zone2}"
 
