@@ -29,10 +29,8 @@ class DataManagment():
 def start_asign(map_obj: Map,
                 paths: list[list[str]]) -> dict[int, dict[str, str]]:
     data = DataManagment(map_obj, paths)
+    drone = 1
 
-    asign_first_drone(data)
-
-    drone = 2
     while drone <= data.max_drones:
         asign_next_drone(data, drone)
         drone += 1
@@ -41,45 +39,35 @@ def start_asign(map_obj: Map,
     return data.drones_table
 
 
-def asign_first_drone(data: DataManagment) -> None:
-    path = data.paths[0]
-
-    i = 1
-    for idx, zone in enumerate(path):
-        if zone == data.map_obj.start_zone:
-            continue
-
-        if data.map_obj.zones[zone]["zone_type"] == ZoneType.RESTRICTED:
-            prev = path[idx - 1]
-            data.zone_capacity_table[i] = {f"{prev}-{zone}": 1}
-            data.drones_table[i] = {"D1": f"{prev}-{zone}"}
-            i += 1
-        data.zone_capacity_table[i] = {zone: 1}
-        data.drones_table[i] = {"D1": zone}
-        i += 1
-
-
 def asign_next_drone(data: DataManagment,
                      drone: int) -> None:
     best_path = None
     best_time = float("inf")
+    best_priority = -1
 
     for path in data.paths:
-        drone_movement = simulate_path(data, path)
-        finish_time = len(drone_movement)
+        finish_time, drone_movement = simulate_path(data, path)
 
-        if finish_time < best_time:
+        priority_count = sum(
+            1
+            for zone in path
+            if data.map_obj.zones[zone]["zone_type"] == ZoneType.PRIORITY
+        )
+
+        if finish_time < best_time \
+           or (finish_time == best_time and priority_count > best_priority):
             best_time = finish_time
             best_path = drone_movement
+            best_priority = priority_count
 
     assert best_path is not None
     assert data.map_obj.start_zone is not None
-    best_path.insert(0, data.map_obj.start_zone)
-    asign_drone(data, best_path, drone)
+    final_path = [data.map_obj.start_zone] + best_path
+    asign_drone(data, final_path, drone)
 
 
 def simulate_path(data: DataManagment,
-                  path: list[str]) -> list[str]:
+                  path: list[str]) -> tuple[int, list[str]]:
     time: int = 1
     drone_path: list[str] = []
 
@@ -104,18 +92,18 @@ def simulate_path(data: DataManagment,
                     time += 1
                     drone_path.append(zone)
                     break
-                time += 1
                 drone_path.append("wait")
+                time += 1
         else:
             while data.zone_capacity_table.get(time, {}).get(zone, 0) >= \
              data.map_obj.zones[zone]["max_drones"]:
-                time += 1
                 drone_path.append("wait")
+                time += 1
             drone_path.append(zone)
 
         time += 1
 
-    return drone_path
+    return time - 1, drone_path
 
 
 def asign_drone(data: DataManagment,
