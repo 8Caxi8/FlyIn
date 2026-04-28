@@ -5,6 +5,25 @@ import math
 
 
 class RenderData(NamedTuple):
+    """
+    Stores layout and rendering values used to draw the map.
+
+    Attributes:
+        node_size (int):
+            Size in pixels of each zone square.
+
+        spacing (float):
+            Space in pixels between adjacent zones.
+
+        offset (tuple[int, int]):
+            Top-left screen offset used to center the map.
+
+        min_x (int):
+            Minimum x-coordinate found in the map.
+
+        min_y (int):
+            Minimum y-coordinate found in the map.
+    """
     node_size: int
     spacing: float
     offset: tuple[int, int]
@@ -13,6 +32,26 @@ class RenderData(NamedTuple):
 
 
 def compute_layout(map_obj: Map, WIDTH: int, HEIGHT: int) -> RenderData:
+    """
+    Compute the optimal layout values for rendering the map.
+
+    Automatically scales node size and spacing so the full map fits
+    inside the screen while preserving proportions and padding.
+
+    Args:
+        map_obj (Map):
+            Parsed map object.
+
+        WIDTH (int):
+            Screen width in pixels.
+
+        HEIGHT (int):
+            Screen height in pixels.
+
+    Returns:
+        RenderData:
+            Layout information used for rendering.
+    """
     BASE_NODE = 150
     SPACING_RATIO = 0.3
     PADDING = 40
@@ -60,6 +99,30 @@ def compute_layout(map_obj: Map, WIDTH: int, HEIGHT: int) -> RenderData:
 def get_last_known_location(drones_table: dict[int, dict[str, str]],
                             drone: str,
                             current_turn: int) -> str:
+    """
+    Retrieve the last known position of a drone up to a given turn.
+
+    Used when a drone is waiting and does not explicitly appear
+    in the current turn entry.
+
+    Args:
+        drones_table (dict[int, dict[str, str]]):
+            Simulation table of drone positions.
+
+        drone (str):
+            Drone identifier (example: "D3").
+
+        current_turn (int):
+            Current simulation turn.
+
+    Returns:
+        str:
+            Last known location of the drone.
+
+    Raises:
+        ValueError:
+            If no previous location is found.
+    """
     for t in range(current_turn, -1, -1):
         if drone in drones_table.get(t, {}):
             return drones_table[t][drone]
@@ -70,6 +133,29 @@ def get_last_known_location(drones_table: dict[int, dict[str, str]],
 def get_position(map_obj: Map,
                  values: RenderData,
                  location: str) -> tuple[int, int]:
+    """
+    Convert a drone location string into screen coordinates.
+
+    If the location is an edge ("A-B"), returns the midpoint
+    between both connected zones.
+
+    If the location is a zone name, returns the center position
+    of that zone.
+
+    Args:
+        map_obj (Map):
+            Parsed map object.
+
+        values (RenderData):
+            Rendering layout values.
+
+        location (str):
+            Zone name or edge representation.
+
+    Returns:
+        tuple[int, int]:
+            Screen position in pixels.
+    """
     if "-" in location:
         a, b = location.split("-", 1)
 
@@ -84,6 +170,23 @@ def get_position(map_obj: Map,
 def get_node_pos(map_obj: Map,
                  values: RenderData,
                  zone: str) -> tuple[int, int]:
+    """
+    Convert a zone name into the center screen position of that node.
+
+    Args:
+        map_obj (Map):
+            Parsed map object.
+
+        values (RenderData):
+            Rendering layout values.
+
+        zone (str):
+            Zone name.
+
+    Returns:
+        tuple[int, int]:
+            Center pixel coordinates of the zone.
+    """
     x, y = map_obj.zones[zone]["position"]
 
     px = (
@@ -102,6 +205,26 @@ def get_node_pos(map_obj: Map,
 def get_frame(frames: list[pygame.Surface],
               time: int,
               drone: str) -> pygame.Surface:
+    """
+    Select the current animation frame for a drone.
+
+    Uses a hash-based phase offset so drones do not animate
+    perfectly in sync.
+
+    Args:
+        frames (list[pygame.Surface]):
+            Animation frame list.
+
+        time (int):
+            Current pygame tick time.
+
+        drone (str):
+            Drone identifier.
+
+    Returns:
+        pygame.Surface:
+            Current animation frame.
+    """
     ANIM_SPEED = 150
 
     offset = hash(drone) % 1000
@@ -112,6 +235,17 @@ def get_frame(frames: list[pygame.Surface],
 
 
 def get_bounds(map_obj: Map) -> tuple[int, int, int, int]:
+    """
+    Get the minimum and maximum map coordinates.
+
+    Args:
+        map_obj (Map):
+            Parsed map object.
+
+    Returns:
+        tuple[int, int, int, int]:
+            (min_x, max_x, min_y, max_y)
+    """
     x_vals = [data["position"][0] for data in map_obj.zones.values()]
     y_vals = [data["position"][1] for data in map_obj.zones.values()]
 
@@ -120,6 +254,34 @@ def get_bounds(map_obj: Map) -> tuple[int, int, int, int]:
 
 def compute_scale(map_obj: Map, screen_width: int,
                   padding: int, screen_height: int) -> tuple[float, float]:
+    """
+    Compute horizontal and vertical scaling factors for the map.
+
+    Determines how much each map coordinate unit should be scaled
+    so the full map fits inside the available screen space while
+    respecting the desired padding.
+
+    This is useful for proportional rendering and responsive layouts.
+
+    Args:
+        map_obj (Map):
+            Parsed map containing all zone coordinates.
+
+        screen_width (int):
+            Width of the rendering window in pixels.
+
+        padding (int):
+            Padding margin to preserve around the map.
+
+        screen_height (int):
+            Height of the rendering window in pixels.
+
+    Returns:
+        tuple[float, float]:
+            A tuple containing:
+                - scale_x: horizontal scaling factor
+                - scale_y: vertical scaling factor
+    """
     min_x, max_x, min_y, max_y = get_bounds(map_obj)
 
     map_width = max_x - min_x + 1
@@ -132,6 +294,19 @@ def compute_scale(map_obj: Map, screen_width: int,
 
 
 def get_color(color: str | None) -> tuple[int, int, int]:
+    """
+    Convert a color name into an RGB tuple.
+
+    Falls back to cyan if the color is invalid or missing.
+
+    Args:
+        color (str | None):
+            Color name.
+
+    Returns:
+        tuple[int, int, int]:
+            RGB color tuple.
+    """
     if color:
         try:
             c = pygame.Color(color)
@@ -143,6 +318,17 @@ def get_color(color: str | None) -> tuple[int, int, int]:
 
 
 def soften(color: tuple[int, int, int]) -> tuple[int, int, int]:
+    """
+    Slightly soften a color for visual styling.
+
+    Args:
+        color (tuple[int, int, int]):
+            RGB color.
+
+    Returns:
+        tuple[int, int, int]:
+            Softened RGB color.
+    """
     r, g, b = color
     return (
         int(r * 0.85),
@@ -153,6 +339,20 @@ def soften(color: tuple[int, int, int]) -> tuple[int, int, int]:
 
 def darken(color: tuple[int, int, int],
            factor: float = 0.7) -> tuple[int, int, int]:
+    """
+    Darken a color by a multiplication factor.
+
+    Args:
+        color (tuple[int, int, int]):
+            RGB color.
+
+        factor (float):
+            Darkening multiplier.
+
+    Returns:
+        tuple[int, int, int]:
+            Darkened RGB color.
+    """
     r, g, b = color
     return (
         int(r * factor),
@@ -163,6 +363,35 @@ def darken(color: tuple[int, int, int],
 
 def load_animations(idle_path: str, mov_path: str, frame_count: int) \
                         -> tuple[list[pygame.Surface], list[pygame.Surface]]:
+    """
+    Load and split idle and movement animation spritesheets.
+
+    Each spritesheet is assumed to contain frames arranged
+    horizontally in a single row.
+
+    The function divides each spritesheet into individual frames
+    and returns both animation frame lists.
+
+    Args:
+        idle_path (str):
+            Path to the idle animation spritesheet.
+
+        mov_path (str):
+            Path to the movement animation spritesheet.
+
+        frame_count (int):
+            Number of frames contained in each spritesheet.
+
+    Returns:
+        tuple[list[pygame.Surface], list[pygame.Surface]]:
+            A tuple containing:
+                - idle animation frames
+                - movement animation frames
+
+    Raises:
+        ValueError:
+            If the image files cannot be loaded.
+    """
     try:
         idle = pygame.image.load(idle_path).convert_alpha()
         mov = pygame.image.load(mov_path).convert_alpha()
@@ -193,6 +422,26 @@ def load_animations(idle_path: str, mov_path: str, frame_count: int) \
 def add_turn_zero(map_obj: Map,
                   drones_table: dict[int, dict[str, str]]) \
                     -> dict[int, dict[str, str]]:
+    """
+    Add turn 0 to the simulation table.
+
+    At turn 0, all drones start at the start zone before any
+    movement begins.
+
+    This ensures every drone always has an initial known position.
+
+    Args:
+        map_obj (Map):
+            Parsed map containing the start zone and total number
+            of drones.
+
+        drones_table (dict[int, dict[str, str]]):
+            Existing simulation table.
+
+    Returns:
+        dict[int, dict[str, str]]:
+            Updated simulation table including turn 0.
+    """
     assert map_obj.start_zone is not None
 
     drones_table[0] = {
@@ -205,6 +454,25 @@ def add_turn_zero(map_obj: Map,
 
 def get_offset(drone: str,
                spread: float = 10) -> tuple[float, float]:
+    """
+    Generate a stable visual offset for a drone.
+
+    This prevents multiple drones occupying the same zone from
+    being drawn directly on top of each other.
+
+    The offset is deterministic based on the drone identifier.
+
+    Args:
+        drone (str):
+            Drone identifier.
+
+        spread (float):
+            Maximum offset spread in pixels.
+
+    Returns:
+        tuple[float, float]:
+            (dx, dy) positional offset.
+    """
     h = hash(drone)
 
     dx = ((h & 0xFF) / 255 - 0.5) * 2 * spread
@@ -215,6 +483,26 @@ def get_offset(drone: str,
 
 def get_float_offset(time: int,
                      drone: str) -> tuple[float, float]:
+    """
+    Generate a small floating animation offset for a drone.
+
+    This creates a subtle hovering effect so drones feel less static
+    while idle.
+
+    Each drone gets a slightly different phase so animations do not
+    sync perfectly.
+
+    Args:
+        time (int):
+            Current pygame tick time.
+
+        drone (str):
+            Drone identifier.
+
+    Returns:
+        tuple[float, float]:
+            (dx, dy) floating animation offset.
+    """
     speed = 0.00001
     amplitude = 3
 
@@ -227,6 +515,25 @@ def get_float_offset(time: int,
 
 
 def get_zone(location: str) -> str:
+    """
+    Extract the destination zone from a location string.
+
+    If the location represents an edge ("A-B"), returns the
+    destination zone ("B").
+
+    If the location is already a zone name, returns it unchanged.
+
+    Used to compare logical drone positions instead of raw
+    string representations.
+
+    Args:
+        location (str):
+            Zone name or edge representation.
+
+    Returns:
+        str:
+            Destination zone name.
+    """
     if "-" in location:
         return location.split("-")[1]
 

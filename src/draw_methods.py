@@ -1,27 +1,61 @@
 import pygame
 from .map_model import Map
-from .draw_helper import RenderData, soften, get_color, darken, get_last_known_location, get_position, get_offset, get_frame, get_float_offset, get_zone
+from .draw_helper import (RenderData, soften, get_color, darken,
+                          get_last_known_location, get_position,
+                          get_offset, get_frame, get_float_offset)
 
 
 def draw_turn(screen: pygame.Surface,
               font: pygame.font.Font,
-              turn: int, status: str) -> None:
+              turn: int, max_turn: int,
+              status: str) -> None:
 
-    text = font.render(f"{status} Turn {turn}", True, (220, 220, 220))
+    text = font.render(f"{status} Turn {turn} / {max_turn}", True,
+                       (220, 220, 220))
     rect = text.get_rect()
     rect.centerx = screen.get_width() // 2
-    rect.top = 10
+    rect.top = 40
 
     bg = pygame.Surface((rect.width + 20, rect.height + 10), pygame.SRCALPHA)
     bg.fill((0, 0, 0, 120))
     bg_rect = bg.get_rect(center=rect.center)
 
-    shadow = font.render(f"{status} Turn {turn}", True, (0, 0, 0))
+    shadow = font.render(f"{status} Turn {turn} / ", True, (0, 0, 0))
     shadow_rect = shadow.get_rect(center=(rect.centerx + 2, rect.centery + 2))
 
     screen.blit(bg, bg_rect)
     screen.blit(shadow, shadow_rect)
     screen.blit(text, rect)
+
+
+def draw_commands(screen: pygame.Surface) -> None:
+    font = pygame.font.Font(None, 25)
+    title_font = pygame.font.Font(None, 30)
+
+    title = "Commands"
+    commands = [
+        "SPACE > Play / Pause",
+        "A > Previous Turn",
+        "D > Next Turn",
+        "S > Reset to Turn 0",
+        "Q > Quit",
+    ]
+
+    padding = 20
+    line_spacing = 8
+
+    x = padding
+    y = screen.get_height() - 180
+
+    title_text = title_font.render(title, True, (240, 240, 240))
+    screen.blit(title_text, (x, y))
+
+    y += title_text.get_height() + 12
+
+    for command in commands:
+        text = font.render(command, True, (220, 220, 220))
+        screen.blit(text, (x, y))
+        y += text.get_height() + line_spacing
 
 
 def draw_connections(screen: pygame.Surface,
@@ -153,34 +187,37 @@ def draw_drones(screen: pygame.Surface,
 
     for drone in all_drones:
         loc_now = get_last_known_location(drones_table, drone, current_turn)
-        loc_next = drones_table.get(current_turn + 1, {}).get(drone, loc_now)
+        loc_prev = get_last_known_location(drones_table,
+                                           drone, current_turn - 1) \
+            if current_turn > 0 else loc_now
 
         assert loc_now is not None
-        assert loc_next is not None
-        x1, y1 = get_position(map_obj, values, loc_now)
-        x2, y2 = get_position(map_obj, values, loc_next)
+        assert loc_prev is not None
+        x1, y1 = get_position(map_obj, values, loc_prev)
+        x2, y2 = get_position(map_obj, values, loc_now)
 
-        moving = animate_transition and is_transitioning \
-            and loc_now != loc_next
+        actually_moved = loc_prev != loc_now
+        moving = animate_transition and is_transitioning and actually_moved
 
         dx, dy = get_offset(drone)
-
         fx, fy = get_float_offset(time, drone)
 
         if is_transitioning:
             now = pygame.time.get_ticks()
             progress = (now - transition_start) / TRANSITION_DURATION
             progress = min(1, progress)
+            if progress == 1:
+                is_transitioning = False
         else:
-            progress = 0
+            progress = 1.0
 
         if moving:
             x = x1 + (x2 - x1) * progress + dx + fx
             y = y1 + (y2 - y1) * progress + dy + fy
             frame = get_frame(frames[1], time, drone)
         else:
-            x = x1 + dx + fx
-            y = y1 + dy + fy
+            x = x2 + dx + fx
+            y = y2 + dy + fy
             frame = get_frame(frames[0], time, drone)
 
         rect = frame.get_rect(center=(int(x), int(y)))

@@ -4,10 +4,12 @@ from .bfs import check_solvability
 
 
 class FileError(Exception):
+    """Base exception for all map file parsing errors."""
     pass
 
 
 class HubError(FileError):
+    """Raised when a hub definition line has an invalid format."""
     def __str__(self) -> str:
         return ("Each hub line must have the format:\n"
                 "    start_hub/end_hub/hub: "
@@ -19,6 +21,7 @@ class HubError(FileError):
 
 
 class ConnectionError(FileError):
+    """Raised when a connection definition line has an invalid format."""
     def __str__(self) -> str:
         return ("Each connection line must have the format:\n"
                 "    connection: "
@@ -28,6 +31,18 @@ class ConnectionError(FileError):
 
 
 def parser_map() -> Map:
+    """
+    Parse command-line arguments and load the corresponding map file.
+
+    Looks for the optional '--input' flag to determine the input file path.
+    If not provided, uses 'default.txt'.
+
+    Returns:
+        Map: The parsed and validated map object.
+
+    Raises:
+        ValueError: If '--input' is provided without a file path.
+    """
     args = sys.argv[1:]
     map_path = "default.txt"
 
@@ -42,6 +57,24 @@ def parser_map() -> Map:
 
 
 def load_map(map_path: str) -> Map:
+    """
+    Load, parse, validate, and verify solvability of a map file.
+
+    Reads the map definition file, creates all zones and connections,
+    validates the map structure, and ensures at least one valid path
+    exists between the start and end zones.
+
+    Args:
+        map_path (str): Path to the map definition file.
+
+    Returns:
+        Map: A fully parsed and validated map object.
+
+    Raises:
+        ValueError:
+            If the file cannot be read, contains invalid formatting,
+            violates map validation rules, or is not solvable.
+    """
     map_obj: Map | None = None
 
     try:
@@ -132,6 +165,37 @@ def load_map(map_path: str) -> Map:
 
 
 def parse_metadata(meta_type: str, meta: str) -> dict[str, str | int]:
+    """
+    Parse metadata values from a hub or connection definition line.
+
+    Converts metadata strings such as:
+        zone=restricted color=blue max_drones=3
+
+    into a dictionary suitable for Zone or Connection construction.
+
+    For zones, the key 'zone' is renamed to 'zone_type'.
+
+    Args:
+        meta_type (str):
+            Type of metadata being parsed.
+            Expected values:
+                - 'zone' for hub metadata
+                - 'conn' for connection metadata
+
+        meta (str):
+            Raw metadata string without surrounding brackets.
+
+    Returns:
+        dict[str, str | int]:
+            Parsed metadata dictionary.
+
+    Raises:
+        HubError:
+            If hub metadata is malformed or contains invalid keys.
+
+        ConnectionError:
+            If connection metadata is malformed or contains invalid keys.
+    """
     result: dict[str, str | int] = {}
     meta_keys = {"zone", "color", "max_drones"} \
         if meta_type == "zone" else {"max_link_capacity"}
