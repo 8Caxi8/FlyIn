@@ -18,7 +18,5 @@ uv.lock
 .DS_Store
 Thumbs.db
 
-# build
-dist/
-build/
-*.egg-info/
+# Files
+maps/
