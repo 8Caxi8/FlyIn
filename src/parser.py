@@ -30,21 +30,26 @@ class ConnectionError(FileError):
                 "    max_link_capacity=<number>\n")
 
 
-def parser_map() -> Map:
+def parser_map() -> tuple[bool,Map]:
     """
     Parse command-line arguments and load the corresponding map file.
 
     Looks for the optional '--input' flag to determine the input file path.
-    If not provided, uses 'default.txt'.
+    If not provided, falls back to 'default.txt' and emits a warning to stderr.
+    Looks for the optional '--no-gui' flag to disable the graphical interface.
 
     Returns:
-        Map: The parsed and validated map object.
+        tuple[bool, Map]: A tuple of (gui_enabled, parsed_map) where
+            gui_enabled is True unless '--no-gui' was passed, and
+            parsed_map is the fully parsed and validated Map object.
 
     Raises:
-        ValueError: If '--input' is provided without a file path.
+        ValueError: If '--input' is provided without a following file path,
+                    or if the map file fails parsing or validation.
     """
     args = sys.argv[1:]
     map_path = "default.txt"
+    gui = True
 
     if "--input" in args:
         idx = args.index("--input")
@@ -52,8 +57,15 @@ def parser_map() -> Map:
             map_path = args[idx + 1]
         except IndexError:
             raise ValueError("Missing value for '--input'")
+    
+    else:
+        sys.stderr.write("[WARNING]: No --input received, falling back to 'default.txt'.\n")
+                         
+    if "--no-gui" in args:
+        gui = False
+    
 
-    return load_map(map_path)
+    return gui, load_map(map_path)
 
 
 def load_map(map_path: str) -> Map:
@@ -115,8 +127,11 @@ def load_map(map_path: str) -> Map:
 
                         name, x, y = maindata[1:]
 
-                        zone = Zone(name=name, x=int(x), y=int(y),
+                        try:
+                            zone = Zone(name=name, x=int(x), y=int(y),
                                     **metadata)
+                        except ValueError as e:
+                            raise HubError(e)
 
                         match maindata[0]:
                             case "start_hub:":

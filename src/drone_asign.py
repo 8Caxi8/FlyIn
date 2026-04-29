@@ -27,9 +27,9 @@ class DataManagment():
         self.map_obj: Map = map_obj
         self.paths = paths
         self.paths_len: list[int] = []
-        self.zone_capacity_table: dict[int, dict[str, int]] = {}
-        self.edge_capacity_table: dict[int, dict[str, int]] = {}
+        self.capacity_table: dict[int, dict[str, int]] = {}
         self.drones_table: dict[int, dict[str, str]] = {}
+        self.simulation: str = ""
         self.set_paths_len()
 
     def set_paths_len(self) -> None:
@@ -74,7 +74,6 @@ def start_asign(map_obj: Map,
         assign_next_drone(data, drone)
         drone += 1
 
-    print_simulation(data.drones_table)
     return data.drones_table
 
 
@@ -140,21 +139,19 @@ def simulate_path(data: DataManagment,
     drone_path: list[str] = []
 
     for idx, zone in enumerate(path):
-        prev_zone = path[idx - 1] if idx > 0 else data.map_obj.start_zone
-        assert prev_zone is not None
         if zone == data.map_obj.start_zone:
             continue
+        prev_zone = path[idx - 1] if idx > 0 else data.map_obj.start_zone
+        assert prev_zone is not None
+        zones = (prev_zone, zone) if prev_zone < zone else (zone, prev_zone)
+        edge = f"{zones[0]}-{zones[1]}"
+        edge_cap = data.map_obj.connection_capacity[zones]
+        edge_used = data.capacity_table.get(time, {}).get(edge, 0)
 
         if data.map_obj.zones[zone]["zone_type"] == ZoneType.RESTRICTED:
             while True:
-                prev = path[idx - 1]
-                zones = (prev, zone) if prev < zone else (zone, prev)
-                edge = f"{prev}-{zone}"
-
-                edge_used = data.zone_capacity_table.get(time, {}).get(edge, 0)
-                edge_cap = data.map_obj.connection_capacity[zones]
-
-                zone_used = data.zone_capacity_table.get(
+                edge_used = data.capacity_table.get(time, {}).get(edge, 0)
+                zone_used = data.capacity_table.get(
                     time + 1, {}).get(zone, 0)
                 zone_cap = data.map_obj.zones[zone]["max_drones"]
 
@@ -165,19 +162,12 @@ def simulate_path(data: DataManagment,
                 drone_path.append("wait")
                 time += 1
         else:
-            zones = (prev_zone, zone) if prev_zone < zone\
-                else (zone, prev_zone)
-            data.edge_capacity_table.setdefault(time, {})
-            edge_max = data.map_obj.connection_capacity.get(zones, 0)
-            edge_used = data.edge_capacity_table.get(time, {}).get(zones, 0)
-
-            while (data.zone_capacity_table.get(time, {}).get(zone, 0) >=
+            while (data.capacity_table.get(time, {}).get(zone, 0) >=
                    data.map_obj.zones[zone]["max_drones"]
-                    or edge_used >= edge_max):
+                    or edge_used >= edge_cap):
                 drone_path.append("wait")
                 time += 1
-                edge_used = data.edge_capacity_table.get(time, {}).get(zones,
-                                                                       0)
+                edge_used = data.capacity_table.get(time, {}).get(edge, 0)
             drone_path.append(zone)
 
         time += 1
@@ -212,24 +202,23 @@ def asign_drone(data: DataManagment,
         while path[j - 1] == "wait":
             j -= 1
         prev_zone = path[j - 1]
+        edge = f"{prev_zone}-{zone}" if prev_zone < zone else f"{zone}-{prev_zone}"
 
         if data.map_obj.zones[zone]["zone_type"] == ZoneType.RESTRICTED:
-            data.zone_capacity_table.setdefault(i, {})
-            no = data.zone_capacity_table[i].get(f"{prev_zone}-{zone}", 0)
-            data.zone_capacity_table[i][f"{prev_zone}-{zone}"] = no + 1
+            data.capacity_table.setdefault(i, {})
+            no = data.capacity_table[i].get(edge, 0)
+            data.capacity_table[i][edge] = no + 1
 
             data.drones_table.setdefault(i, {})
-            data.drones_table[i][f"D{drone}"] = f"{prev_zone}-{zone}"
+            data.drones_table[i][f"D{drone}"] = edge
             i += 1
 
-        data.zone_capacity_table.setdefault(i, {})
-        no = data.zone_capacity_table[i].get(zone, 0)
-        data.zone_capacity_table[i][zone] = no + 1
+        data.capacity_table.setdefault(i, {})
+        no = data.capacity_table[i].get(zone, 0)
+        data.capacity_table[i][zone] = no + 1
 
-        zones = (prev_zone, zone) if prev_zone < zone else (zone, prev_zone)
-        data.edge_capacity_table.setdefault(i, {})
-        no = data.edge_capacity_table[i].get(zones, 0)
-        data.edge_capacity_table[i][zones] = no + 1
+        no = data.capacity_table[i].get(edge, 0)
+        data.capacity_table[i][edge] = no + 1
 
         data.drones_table.setdefault(i, {})
         data.drones_table[i][f"D{drone}"] = zone

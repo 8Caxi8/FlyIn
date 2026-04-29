@@ -252,47 +252,6 @@ def get_bounds(map_obj: Map) -> tuple[int, int, int, int]:
     return min(x_vals), max(x_vals), min(y_vals), max(y_vals)
 
 
-def compute_scale(map_obj: Map, screen_width: int,
-                  padding: int, screen_height: int) -> tuple[float, float]:
-    """
-    Compute horizontal and vertical scaling factors for the map.
-
-    Determines how much each map coordinate unit should be scaled
-    so the full map fits inside the available screen space while
-    respecting the desired padding.
-
-    This is useful for proportional rendering and responsive layouts.
-
-    Args:
-        map_obj (Map):
-            Parsed map containing all zone coordinates.
-
-        screen_width (int):
-            Width of the rendering window in pixels.
-
-        padding (int):
-            Padding margin to preserve around the map.
-
-        screen_height (int):
-            Height of the rendering window in pixels.
-
-    Returns:
-        tuple[float, float]:
-            A tuple containing:
-                - scale_x: horizontal scaling factor
-                - scale_y: vertical scaling factor
-    """
-    min_x, max_x, min_y, max_y = get_bounds(map_obj)
-
-    map_width = max_x - min_x + 1
-    map_height = max_y - min_y + 1
-
-    scale_x = (screen_width - 2 * padding) / map_width
-    scale_y = (screen_height - 2 * padding) / map_height
-
-    return scale_x, scale_y
-
-
 def get_color(color: str | None) -> tuple[int, int, int]:
     """
     Convert a color name into an RGB tuple.
@@ -476,7 +435,7 @@ def get_offset(drone: str,
     h = hash(drone)
 
     dx = ((h & 0xFF) / 255 - 0.5) * 2 * spread
-    dy = (((h > 8) & 0xFF) / 255 - 0.5) * 2 * spread
+    dy = (((h >> 8) & 0xFF) / 255 - 0.5) * 2 * spread
 
     return dx, dy
 

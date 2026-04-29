@@ -1,3 +1,4 @@
+import sys
 from .map_model import Map, ZoneType
 
 
@@ -15,7 +16,7 @@ def check_solvability(map_obj: Map) -> bool:
 
 
 def create_paths(map_obj: Map,
-                 no: int,
+                 no: int = 5,
                  prunning: bool = False) -> list[list[str]]:
     """Find up to `no` valid paths from start to end using BFS.
 
@@ -67,10 +68,10 @@ def create_paths(map_obj: Map,
         elif depth >= MAX_DEPTH:
             if not paths:
                 if not extra:
-                    print("Thinking extra-hard!")
+                    sys.stderr.write(f"[WARNING]: No paths found in a depth of {MAX_DEPTH}\n")
                     extra = True
                 elif depth >= MAX_DEPTH_EXTREME:
-                    print(f"Max Depth of {MAX_DEPTH_EXTREME} reached!")
+                    sys.stderr.write(f"[ERROR]: No paths found in a depth of {MAX_DEPTH_EXTREME}\n")
                     return []
             else:
                 return paths
