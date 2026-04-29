@@ -1,14 +1,16 @@
 MAIN = src
+PY = python3
 
 install:
-	uv sync
+	@which uv > /dev/null 2>&1 || curl -LsSf https://astral.sh/uv/install.sh | sh
+	@export PATH="$$HOME/.local/bin:$$PATH" && uv sync
 
 run:
 	clear
-	uv run python -m $(MAIN)
+	uv run $(PY) -m $(MAIN)
 
 debug:
-	uv run python -m pdb -m $(MAIN)
+	uv run $(PY) -m pdb -m $(MAIN)
 
 clean:
 	find . -name "__pycache__" -print -exec rm -rf {} +

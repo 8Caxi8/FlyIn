@@ -29,13 +29,17 @@ make install
 ### Running
 
 ```bash
-make run --input 
+make run
+```
+
+To load a specific map:
+```bash
+uv run python3 -m src --input <map_path>
 ```
 
 To disable the graphical interface:
-
 ```bash
-make run --input  --no-gui
+uv run python3 -m src --no-gui
 ```
 
 If no `--input` is provided, the program falls back to `default.txt`.

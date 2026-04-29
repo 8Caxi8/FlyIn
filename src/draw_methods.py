@@ -5,27 +5,77 @@ from .draw_helper import (RenderData, soften, get_color, darken,
                           get_offset, get_frame, get_float_offset)
 
 
-def draw_turn(screen: pygame.Surface,
-              font: pygame.font.Font,
-              turn: int, max_turn: int,
-              status: str) -> None:
+def draw_turn(
+    screen: pygame.Surface,
+    font: tuple[pygame.font.Font, pygame.font.Font],
+    turn: int,
+    max_turn: int,
+    status: str
+) -> None:
+    normal_font, bold_font = font
 
-    text = font.render(f"{status} Turn {turn} / {max_turn}", True,
-                       (220, 220, 220))
-    rect = text.get_rect()
-    rect.centerx = screen.get_width() // 2
-    rect.top = 40
+    if status == "▶":
+        status_text = bold_font.render(status, True, (220, 220, 220))
+    else:
+        status_text = normal_font.render(status, True, (220, 220, 220))
 
-    bg = pygame.Surface((rect.width + 20, rect.height + 10), pygame.SRCALPHA)
+    turn_text = bold_font.render(
+        f"Turn {turn} / {max_turn}",
+        True,
+        (220, 220, 220)
+    )
+
+    total_width = status_text.get_width() + 10 + turn_text.get_width()
+    total_height = max(
+        status_text.get_height(),
+        turn_text.get_height()
+    )
+
+    center_x = screen.get_width() // 2
+    top_y = 40
+
+    start_x = center_x - total_width // 2
+
+    status_rect = status_text.get_rect()
+    if status == "▶":
+        status_rect.x = start_x
+        status_rect.top = top_y
+    else:
+        status_rect.x = start_x + 5
+        status_rect.top = top_y + 10
+
+    turn_rect = turn_text.get_rect()
+    turn_rect.x = status_rect.right + 10
+    turn_rect.top = top_y
+
+    bg = pygame.Surface(
+        (total_width + 30, total_height + 20),
+        pygame.SRCALPHA
+    )
     bg.fill((0, 0, 0, 120))
-    bg_rect = bg.get_rect(center=rect.center)
 
-    shadow = font.render(f"{status} Turn {turn} / ", True, (0, 0, 0))
-    shadow_rect = shadow.get_rect(center=(rect.centerx + 2, rect.centery + 2))
+    bg_rect = bg.get_rect(
+        center=(center_x, top_y + total_height // 2)
+    )
+
+    shadow_status = (
+        bold_font if status == "▶" else normal_font
+    ).render(status, True, (0, 0, 0))
+
+    shadow_turn = bold_font.render(
+        f"Turn {turn} / {max_turn}",
+        True,
+        (0, 0, 0)
+    )
+
+    shadow_status_rect = status_rect.move(2, 2)
+    shadow_turn_rect = turn_rect.move(2, 2)
 
     screen.blit(bg, bg_rect)
-    screen.blit(shadow, shadow_rect)
-    screen.blit(text, rect)
+    screen.blit(shadow_status, shadow_status_rect)
+    screen.blit(shadow_turn, shadow_turn_rect)
+    screen.blit(status_text, status_rect)
+    screen.blit(turn_text, turn_rect)
 
 
 def draw_commands(screen: pygame.Surface) -> None:

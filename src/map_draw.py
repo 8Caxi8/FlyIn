@@ -57,7 +57,7 @@ def display_map(map_obj: Map,
     TURN_DELAY = 1000
 
     pygame.init()
-    screen = pygame.display.set_mode((1440, 1080))
+    screen = pygame.display.set_mode((1080, 900))
     pygame.display.set_caption("Drone Map")
     width, height = screen.get_size()
 
@@ -65,7 +65,9 @@ def display_map(map_obj: Map,
     drones_table = add_turn_zero(map_obj, drones_table)
 
     clock = pygame.time.Clock()
-    font = pygame.font.SysFont("arial", 48)
+    fontplay = pygame.font.SysFont("arial", 48)
+    fontpause = pygame.font.SysFont("arial", 28)
+    fonts = fontpause, fontplay
     small_font = pygame.font.Font(None, 24)
 
     frames = load_animations("assets/idle.png",
@@ -128,8 +130,8 @@ def display_map(map_obj: Map,
         draw_drones(screen, map_obj, values, drones_table, current_turn,
                     frames, small_font, transition_values)
 
-        status = "▶" if is_playing else "||"
-        draw_turn(screen, font, current_turn, max_turn, status)
+        status = "▶" if is_playing else "▎▎"
+        draw_turn(screen, fonts, current_turn, max_turn, status)
         draw_commands(screen)
 
         pygame.display.flip()
