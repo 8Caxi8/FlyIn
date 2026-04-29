@@ -12,6 +12,39 @@ def draw_turn(
     max_turn: int,
     status: str
 ) -> None:
+    """
+    Draw the current simulation turn indicator at the top-center
+    of the screen.
+
+    Displays:
+        - Play/Pause status symbol
+        - Current turn number
+        - Maximum turn count
+
+    A semi-transparent background and shadow text are used to improve
+    readability.
+
+    Args:
+        screen (pygame.Surface):
+            Main rendering surface.
+
+        font (tuple[pygame.font.Font, pygame.font.Font]):
+            Tuple containing:
+                - normal font
+                - bold font
+
+        turn (int):
+            Current simulation turn.
+
+        max_turn (int):
+            Final simulation turn.
+
+        status (str):
+            Playback state symbol ("▶" for play, "||" for pause).
+
+    Returns:
+        None
+    """
     normal_font, bold_font = font
 
     if status == "▶":
@@ -79,6 +112,19 @@ def draw_turn(
 
 
 def draw_commands(screen: pygame.Surface) -> None:
+    """
+    Draw the control help panel in the bottom-left corner.
+
+    Displays available keyboard commands used to control
+    the simulation playback and navigation.
+
+    Args:
+        screen (pygame.Surface):
+            Main rendering surface.
+
+    Returns:
+        None
+    """
     font = pygame.font.Font(None, 25)
     title_font = pygame.font.Font(None, 30)
 
@@ -110,6 +156,26 @@ def draw_commands(screen: pygame.Surface) -> None:
 
 def draw_connections(screen: pygame.Surface,
                      map_obj: Map, values: RenderData) -> None:
+    """
+    Draw all connections (edges) between zones.
+
+    Each connection is rendered as a line between the center
+    points of two connected zones, with a darker outline
+    for better visual depth.
+
+    Args:
+        screen (pygame.Surface):
+            Main rendering surface.
+
+        map_obj (Map):
+            Parsed map containing zones and connections.
+
+        values (RenderData):
+            Layout values used for rendering.
+
+    Returns:
+        None
+    """
 
     for connection in list(map_obj.connections):
         a, b = connection
@@ -151,6 +217,32 @@ def draw_zones(screen: pygame.Surface,
                map_obj: Map,
                values: RenderData,
                time: int) -> None:
+    """
+    Draw all map zones (nodes).
+
+    Zones are rendered as rounded squares with:
+        - base color
+        - border styling
+        - highlight effect
+        - optional glowing animation for start/end zones
+        - rotated zone label if space allows
+
+    Args:
+        screen (pygame.Surface):
+            Main rendering surface.
+
+        map_obj (Map):
+            Parsed map containing all zones.
+
+        values (RenderData):
+            Layout values used for rendering.
+
+        time (int):
+            Current pygame tick time used for glow animation.
+
+    Returns:
+        None
+    """
 
     for name, data in map_obj.zones.items():
         x, y = data["position"]
@@ -222,6 +314,53 @@ def draw_drones(screen: pygame.Surface,
                 frames: tuple[list[pygame.Surface], list[pygame.Surface]],
                 small_font: pygame.font.Font,
                 transition_values: tuple[float, bool, bool]) -> None:
+    """
+    Draw all drones for the current simulation turn.
+
+    Supports:
+        - idle animation while stationary
+        - movement animation during turn transitions
+        - smooth interpolation between turns
+        - floating idle motion
+        - per-drone positional offset to avoid overlap
+        - numeric drone labels
+
+    Drones positioned on edges are rendered at the midpoint
+    between connected zones.
+
+    Args:
+        screen (pygame.Surface):
+            Main rendering surface.
+
+        map_obj (Map):
+            Parsed map object.
+
+        values (RenderData):
+            Layout values used for rendering.
+
+        drones_table (dict[int, dict[str, str]]):
+            Simulation table containing drone positions per turn.
+
+        current_turn (int):
+            Current simulation turn.
+
+        frames (tuple[list[pygame.Surface], list[pygame.Surface]]):
+            Tuple containing:
+                - idle animation frames
+                - movement animation frames
+
+        small_font (pygame.font.Font):
+            Font used for drone labels.
+
+        transition_values (tuple[float, bool, bool]):
+            Tuple containing:
+                - transition start time
+                - whether transition animation is enabled
+                - whether transition is currently active
+
+    Returns:
+        None
+    """
     if current_turn not in drones_table:
         return
     TRANSITION_DURATION = 500
@@ -292,6 +431,33 @@ def draw_glow(values: RenderData,
               rect: pygame.Rect,
               color: tuple[int, int, int],
               pulse: float) -> None:
+    """
+    Draw a pulsing glow effect around a zone.
+
+    Used for start and end zones to visually
+    highlight them.
+
+    The glow expands and fades based on the pulse value.
+
+    Args:
+        values (RenderData):
+            Layout values used for rendering.
+
+        screen (pygame.Surface):
+            Main rendering surface.
+
+        rect (pygame.Rect):
+            Zone rectangle.
+
+        color (tuple[int, int, int]):
+            RGB glow color.
+
+        pulse (float):
+            Animation phase between 0 and 1.
+
+    Returns:
+        None
+    """
     MAX_RADIUS = 50
 
     radius = int(values.node_size / 2 + pulse * MAX_RADIUS)
