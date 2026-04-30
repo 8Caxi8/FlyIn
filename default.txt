@@ -3,13 +3,13 @@
 # by most algorithms. It's intended as a stress test and research challenge.
 # The goal is NOT to validate this map but to push algorithmic limits.
 
-nb_drones: 25
+nb_drones:  100 #ola #asdk
 
-start_hub: start 0 0 [color=green max_drones=25]
+start_hub: start 0 0 [color=green max_drones=100]
 
 # Priority fail
-hub: gate_1 1 3 [color=blue max_drones=10 zone=priority]
-hub: gate_2 3 3 [color=blue max_drones=10 zone=priority]
+hub: gate_1 1 3 [color=blue max_drones=100 zone=priority]
+hub: gate_2 3 3 [color=blue max_drones=100 zone=priority]
 
 # Loop fails
 hub: maze_trap_a1 1 -1 [color=red zone=priority]
@@ -21,9 +21,9 @@ hub: maze_trap_a6 4 -2 [color=red zone=priority]
 hub: maze_trap_a7 3 -2 [color=red zone=restricted]
 
 #main path
-hub: maze_trap_b1 1 1 [color=blue zone=priority max_drones=2]
-hub: maze_trap_b2 2 1 [color=blue zone=priority max_drones=2]
-hub: maze_trap_b3 3 2 [color=blue zone=priority]
+hub: maze_trap_b1 1 1 [color=blue zone=priority max_drones=3]
+hub: maze_trap_b2 2 1 [color=blue zone=priority max_drones=3]
+hub: maze_trap_b3 3 2 [color=blue zone=priority max_drones=1]
 hub: maze_trap_b4 3 1 [color=black]
 hub: maze_trap_b5 4 1 [color=black]
 
@@ -33,14 +33,14 @@ hub: maze_loop2 2 0 [zone=restricted color=brown max_drones=3]
 hub: maze_loop3 3 0 [zone=restricted color=brown max_drones=3]
 hub: maze_loop4 4 0 [zone=restricted color=brown max_drones=2]
 
-end_hub: impossible_goal 5 0 [color=rainbow max_drones=25]
+end_hub: impossible_goal 5 0 [color=rainbow max_drones=100]
 
 # === CONNECTIONS: The Web of Suffering ===
 
 # Layer 0 connections (bottleneck hell)
 connection: start-gate_1 [max_link_capacity=10]
 connection: start-maze_trap_a1 [max_link_capacity=1]
-connection: start-maze_trap_b1 [max_link_capacity=2]
+connection: start-maze_trap_b1 [max_link_capacity=3]
 connection: start-maze_loop1 [max_link_capacity=3]
 
 # Layer 1 connections (maze of despair)
@@ -55,14 +55,14 @@ connection: maze_trap_a5-maze_trap_a6
 connection: maze_trap_a6-maze_trap_a7
 connection: maze_trap_a7-maze_trap_a3
 
-connection: maze_trap_b1-maze_trap_b2 [max_link_capacity=2]
-connection: maze_trap_b2-maze_trap_b3 [max_link_capacity=2]
+connection: maze_trap_b1-maze_trap_b2 [max_link_capacity=3]
+connection: maze_trap_b2-maze_trap_b3 [max_link_capacity=3]
 connection: maze_trap_b2-maze_trap_b4
 connection: maze_trap_b3-maze_trap_b5
 connection: maze_trap_b4-maze_trap_b5
 connection: maze_trap_b5-impossible_goal
 
-connection: maze_loop1-maze_loop2 [max_link_capacity=3]
-connection: maze_loop2-maze_loop3 [max_link_capacity=3]
-connection: maze_loop3-maze_loop4 [max_link_capacity=2]
+connection: maze_loop1-maze_loop2 [max_link_capacity=2]
+connection: maze_loop2-maze_loop3 [max_link_capacity=2]
+connection: maze_loop3-maze_loop4 [max_link_capacity=1]
 connection: maze_loop4-impossible_goal

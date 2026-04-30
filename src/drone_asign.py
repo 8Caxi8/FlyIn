@@ -162,12 +162,16 @@ def simulate_path(data: DataManagment,
                 drone_path.append("wait")
                 time += 1
         else:
-            while (data.capacity_table.get(time, {}).get(zone, 0) >=
-                   data.map_obj.zones[zone]["max_drones"]
-                    or edge_used >= edge_cap):
+            while True:
+                zone_used = data.capacity_table.get(time, {}).get(zone, 0)
+                edge_used = data.capacity_table.get(time, {}).get(edge, 0)
+
+                if zone_used < data.map_obj.zones[zone]["max_drones"] \
+                   and edge_used < edge_cap:
+                    break
+
                 drone_path.append("wait")
                 time += 1
-                edge_used = data.capacity_table.get(time, {}).get(edge, 0)
             drone_path.append(zone)
 
         time += 1
@@ -212,13 +216,15 @@ def asign_drone(data: DataManagment,
             data.drones_table.setdefault(i, {})
             data.drones_table[i][f"D{drone}"] = edge
             i += 1
+        
+        else:
+            data.capacity_table.setdefault(i, {})
+            no = data.capacity_table[i].get(edge, 0)
+            data.capacity_table[i][edge] = no + 1
 
         data.capacity_table.setdefault(i, {})
         no = data.capacity_table[i].get(zone, 0)
         data.capacity_table[i][zone] = no + 1
-
-        no = data.capacity_table[i].get(edge, 0)
-        data.capacity_table[i][edge] = no + 1
 
         data.drones_table.setdefault(i, {})
         data.drones_table[i][f"D{drone}"] = zone

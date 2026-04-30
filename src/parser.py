@@ -92,16 +92,16 @@ def load_map(map_path: str) -> Map:
     try:
         with open(map_path, "r") as f:
             for line in f:
-                line = line.strip()
+                line = line.strip().split("#", 1)[0]
 
-                if not line or line.startswith("#"):
+                if not line:
                     continue
 
                 parts = line.split()
                 if map_obj is None:
-                    if parts[0] != "nb_drones:":
+                    if parts[0] != "nb_drones:" or len(parts) != 2 :
                         raise FileError("Map must start by stating number of "
-                                        "drones with: 'nb_drones:'")
+                                        "drones with: 'nb_drones: <no_drones>'")
 
                     map_obj = Map(parts[1])
                 else:
