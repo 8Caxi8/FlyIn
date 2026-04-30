@@ -1,31 +1,28 @@
-# CHALLENGER LEVEL: THE IMPOSSIBLE DREAM
-# WARNING: This map is designed to be extremely challenging and may not be solvable
-# by most algorithms. It's intended as a stress test and research challenge.
-# The goal is NOT to validate this map but to push algorithmic limits.
+# Default extreme capacity problem
 
 nb_drones:  100 #ola #asdk
 
 start_hub: start 0 0 [color=green max_drones=100]
 
 # Priority fail
-hub: gate_1 1 3 [color=blue max_drones=100 zone=priority]
-hub: gate_2 3 3 [color=blue max_drones=100 zone=priority]
+hub: gate_1 1 3 [color=black max_drones=100 zone=priority]
+hub: gate_2 3 3 [color=black max_drones=100 zone=priority]
 
-# Loop fails
-hub: maze_trap_a1 1 -1 [color=red zone=priority]
-hub: maze_trap_a2 2 -1 [color=red zone=priority]
-hub: maze_trap_a3 3 -1 [color=red zone=priority]
+# Side option
+hub: maze_trap_a1 1 -1 [color=cyan zone=priority max_drones=4]
+hub: maze_trap_a2 2 -1 [color=cyan zone=priority max_drones=4]
+hub: maze_trap_a3 3 -1 [color=cyan zone=priority max_drones=3]
 hub: maze_trap_a4 4 -1 [color=red]
-hub: maze_trap_a5 5 -1 [color=red zone=priority]
-hub: maze_trap_a6 4 -2 [color=red zone=priority]
-hub: maze_trap_a7 3 -2 [color=red zone=restricted]
+hub: maze_trap_a5 5 -1 [color=cyan zone=priority max_drones=2]
+hub: maze_trap_a6 4 -2 [color=cyan zone=priority]
+hub: maze_trap_a7 3 -2 [color=cyan zone=restricted max_drones=2]
 
 #main path
-hub: maze_trap_b1 1 1 [color=blue zone=priority max_drones=3]
-hub: maze_trap_b2 2 1 [color=blue zone=priority max_drones=3]
-hub: maze_trap_b3 3 2 [color=blue zone=priority max_drones=1]
-hub: maze_trap_b4 3 1 [color=black]
-hub: maze_trap_b5 4 1 [color=black]
+hub: maze_trap_b1 1 1 [color=cyan zone=priority max_drones=3]
+hub: maze_trap_b2 2 1 [color=cyan zone=priority max_drones=3]
+hub: maze_trap_b3 3 2 [color=cyan zone=priority max_drones=1]
+hub: maze_trap_b4 3 1 [color=red]
+hub: maze_trap_b5 4 1 [color=red]
 
 #Restricted path
 hub: maze_loop1 1 0 [zone=restricted color=brown max_drones=3]
@@ -33,36 +30,36 @@ hub: maze_loop2 2 0 [zone=restricted color=brown max_drones=3]
 hub: maze_loop3 3 0 [zone=restricted color=brown max_drones=3]
 hub: maze_loop4 4 0 [zone=restricted color=brown max_drones=2]
 
-end_hub: impossible_goal 5 0 [color=rainbow max_drones=100]
+end_hub: goal 5 0 [color=rainbow max_drones=100]
 
-# === CONNECTIONS: The Web of Suffering ===
+# === CONNECTIONS ===
 
 # Layer 0 connections (bottleneck hell)
 connection: start-gate_1 [max_link_capacity=10]
-connection: start-maze_trap_a1 [max_link_capacity=1]
+connection: start-maze_trap_a1 [max_link_capacity=5]
 connection: start-maze_trap_b1 [max_link_capacity=3]
 connection: start-maze_loop1 [max_link_capacity=3]
 
 # Layer 1 connections (maze of despair)
 connection: gate_1-gate_2
 
-connection: maze_trap_a1-maze_trap_a2 
-connection: maze_trap_a2-maze_trap_a3
-connection: maze_trap_a3-maze_trap_a4
-connection: maze_trap_a4-maze_trap_a5
-connection: maze_trap_a5-impossible_goal
-connection: maze_trap_a5-maze_trap_a6
-connection: maze_trap_a6-maze_trap_a7
-connection: maze_trap_a7-maze_trap_a3
+connection: maze_trap_a1-maze_trap_a2 [max_link_capacity=10]
+connection: maze_trap_a2-maze_trap_a3 [max_link_capacity=10]
+connection: maze_trap_a3-maze_trap_a4 [max_link_capacity=10]
+connection: maze_trap_a4-maze_trap_a5 [max_link_capacity=10]
+connection: maze_trap_a5-goal [max_link_capacity=10]
+connection: maze_trap_a5-maze_trap_a6 [max_link_capacity=10]
+connection: maze_trap_a6-maze_trap_a7 [max_link_capacity=10]
+connection: maze_trap_a7-maze_trap_a3 [max_link_capacity=10]
 
 connection: maze_trap_b1-maze_trap_b2 [max_link_capacity=3]
 connection: maze_trap_b2-maze_trap_b3 [max_link_capacity=3]
 connection: maze_trap_b2-maze_trap_b4
 connection: maze_trap_b3-maze_trap_b5
 connection: maze_trap_b4-maze_trap_b5
-connection: maze_trap_b5-impossible_goal
+connection: maze_trap_b5-goal
 
 connection: maze_loop1-maze_loop2 [max_link_capacity=2]
 connection: maze_loop2-maze_loop3 [max_link_capacity=2]
 connection: maze_loop3-maze_loop4 [max_link_capacity=1]
-connection: maze_loop4-impossible_goal
+connection: maze_loop4-goal

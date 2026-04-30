@@ -30,7 +30,7 @@ class ConnectionError(FileError):
                 "    max_link_capacity=<number>\n")
 
 
-def parser_map() -> tuple[bool,Map]:
+def parser_map() -> tuple[bool, Map]:
     """
     Parse command-line arguments and load the corresponding map file.
 
@@ -57,13 +57,13 @@ def parser_map() -> tuple[bool,Map]:
             map_path = args[idx + 1]
         except IndexError:
             raise ValueError("Missing value for '--input'")
-    
+
     else:
-        sys.stderr.write("[WARNING]: No --input received, falling back to 'default.txt'.\n")
-                         
+        sys.stderr.write("[WARNING]: No --input received, falling back to "
+                         "'default.txt'.\n")
+
     if "--no-gui" in args:
         gui = False
-    
 
     return gui, load_map(map_path)
 
@@ -99,9 +99,10 @@ def load_map(map_path: str) -> Map:
 
                 parts = line.split()
                 if map_obj is None:
-                    if parts[0] != "nb_drones:" or len(parts) != 2 :
+                    if parts[0] != "nb_drones:" or len(parts) != 2:
                         raise FileError("Map must start by stating number of "
-                                        "drones with: 'nb_drones: <no_drones>'")
+                                        "drones with: 'nb_drones: "
+                                        "<no_drones>'")
 
                     map_obj = Map(parts[1])
                 else:
@@ -129,7 +130,7 @@ def load_map(map_path: str) -> Map:
 
                         try:
                             zone = Zone(name=name, x=int(x), y=int(y),
-                                    **metadata)
+                                        **metadata)
                         except ValueError as e:
                             raise HubError(e)
 

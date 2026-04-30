@@ -68,10 +68,12 @@ def create_paths(map_obj: Map,
         elif depth >= MAX_DEPTH:
             if not paths:
                 if not extra:
-                    sys.stderr.write(f"[WARNING]: No paths found in a depth of {MAX_DEPTH}\n")
+                    sys.stderr.write("[WARNING]: No paths found in a depth of "
+                                     f"{MAX_DEPTH}\n")
                     extra = True
                 elif depth >= MAX_DEPTH_EXTREME:
-                    sys.stderr.write(f"[ERROR]: No paths found in a depth of {MAX_DEPTH_EXTREME}\n")
+                    sys.stderr.write("[ERROR]: No paths found in a depth of "
+                                     f"{MAX_DEPTH_EXTREME}\n")
                     return []
             else:
                 return paths

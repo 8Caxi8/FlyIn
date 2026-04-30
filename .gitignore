@@ -11,12 +11,6 @@ venv/
 # VSCode
 .vscode/
 
-# uv
-uv.lock
-
 # OS
 .DS_Store
 Thumbs.db
-
-# Files
-maps/

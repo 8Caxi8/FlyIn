@@ -415,7 +415,7 @@ def draw_drones(screen: pygame.Surface,
         radius = 12
         pygame.draw.circle(
             screen,
-            (25, 25, 28, 0.8),
+            (25, 25, 28, 204),
             (x + 15, y - 40),
             radius
         )
