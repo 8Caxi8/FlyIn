@@ -3,7 +3,9 @@ name = "flyin"
 version = "1.2"
 description = "Drone Pathfinding and Path Assignment Optimizer"
 readme = "README.md"
-authors = "dansimoe"
+authors = [
+    { name = "dansimoe" }
+]
 requires-python = ">=3.10"
 dependencies = [
 	"pydantic",
