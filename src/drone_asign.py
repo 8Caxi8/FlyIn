@@ -116,7 +116,6 @@ def assign_next_drone(data: DataManagment,
     assert best_path is not None
     assert data.map_obj.start_zone is not None
     final_path = [data.map_obj.start_zone] + best_path
-    print(f"{drone}: {best_path}")
     asign_drone(data, final_path, drone)
 
 

@@ -91,8 +91,8 @@ def load_map(map_path: str) -> Map:
 
     try:
         with open(map_path, "r") as f:
-            for line in f:
-                line = line.strip().split("#", 1)[0]
+            for raw_line in f:
+                line = raw_line.strip().split("#", 1)[0]
 
                 if not line:
                     continue
@@ -121,7 +121,7 @@ def load_map(map_path: str) -> Map:
                                                "start_hub:",
                                                "end_hub:")):
                         metadata = parse_metadata(
-                            "zone", meta_part.rstrip("]"))
+                            "zone", meta_part.strip().rstrip("]"))
 
                         if len(maindata) != 4:
                             raise HubError()

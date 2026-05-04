@@ -1,6 +1,6 @@
 # Default extreme capacity problem
 
-nb_drones:  100 #ola #asdk
+nb_drones:  100
 
 start_hub: start 0 0 [color=green max_drones=100]
 
@@ -57,7 +57,7 @@ connection: maze_trap_b2-maze_trap_b3 [max_link_capacity=3]
 connection: maze_trap_b2-maze_trap_b4
 connection: maze_trap_b3-maze_trap_b5
 connection: maze_trap_b4-maze_trap_b5
-connection: maze_trap_b5-goal
+connection: maze_trap_b5-goal 
 
 connection: maze_loop1-maze_loop2 [max_link_capacity=2]
 connection: maze_loop2-maze_loop3 [max_link_capacity=2]
