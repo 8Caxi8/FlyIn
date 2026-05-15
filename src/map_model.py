@@ -238,6 +238,7 @@ class Map:
                            f"{self.end_zone} incompatible with "
                            f"{zone}")
 
+        zone.max_drones = self.drones
         self.add_zone(zone)
         self.end_zone = zone.name
 
